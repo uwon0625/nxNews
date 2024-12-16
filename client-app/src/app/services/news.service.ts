@@ -17,10 +17,10 @@ export class NewsService {
   }
 
   searchStories(searchText: string, size: number = 20): Observable<Story[]> {
-    return this.http.get<Story[]>(`${this.apiUrl}/search/${searchText}?size=${size}`);
+    return this.http.get<Story[]>(`${this.apiUrl}/News/search/${searchText}?size=${size}`);
   }
 
   getStories(startId: number, size: number = 20): Observable<Story[]> {
-    return this.http.get<Story[]>(`${this.apiUrl}/stories?startId=${startId}&size=${size}`);
+    return this.http.get<Story[]>(`${this.apiUrl}/News/stories?startId=${startId}&size=${size}`);
   }
 } 
