@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);MSB3277;CS1701;CS1702;CS1705</NoWarn>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <IncludeSymbols>true</IncludeSymbols>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+  </PropertyGroup>
+</Project> 

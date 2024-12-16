@@ -1,0 +1,7 @@
+root = true
+
+[*.{cs,vb}]
+dotnet_diagnostic.CS1701.severity = none
+dotnet_diagnostic.CS1702.severity = none
+dotnet_diagnostic.CS1705.severity = none
+

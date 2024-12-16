@@ -1,0 +1,24 @@
+{
+    "version": "0.2",
+    "language": "en",
+    "words": [
+        "newsapi",
+        "newsitem",
+        "xunit",
+        "ilist",
+        "snupkg",
+        "Swashbuckle",
+        "ebug",
+        "contentfiles",
+        "buildtransitive",
+        "newstories",
+        "hackernews",
+        "maxitem"
+    ],
+    "ignorePaths": [
+        "**/node_modules/**",
+        "**/bin/**",
+        "**/obj/**",
+        "**/*.dll"
+    ]
+} 
