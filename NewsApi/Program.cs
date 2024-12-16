@@ -13,6 +13,12 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod()
             .AllowAnyHeader()
     );
+
+    options.AddPolicy("AllowAzureStaticApp",
+        builder => builder
+            .WithOrigins("https://black-pond-01e5cac1e.4.azurestaticapps.net")
+            .AllowAnyMethod()
+            .AllowAnyHeader());
 });
 
 // Add services to the container.
@@ -24,12 +30,12 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Hacker News API",
+        Title = "NT News API",
         Version = "v1",
-        Description = "An API for accessing Hacker News stories",
+        Description = "An API for accessing Nt News stories",
         Contact = new OpenApiContact
         {
-            Name = "Your Name",
+            Name = "DL",
             Email = "your.email@example.com"
         }
     });
@@ -50,6 +56,7 @@ var app = builder.Build();
 
 // Enable CORS - make sure this is before other middleware
 app.UseCors("AllowAngularDev");
+app.UseCors("AllowAzureStaticApp");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { Story } from '../models/story';
 import { environment } from '../../environments/environment';
 
@@ -8,21 +8,12 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class NewsService {
-  private apiUrl = `${environment.apiUrl}/News`;
+  private apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {
-    console.log('API URL:', this.apiUrl);
-  }
+  constructor(private http: HttpClient) { }
 
-  getNewStories(size: number = 20): Observable<Story[]> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json'
-    });
-
-    return this.http.get<Story[]>(`${this.apiUrl}`, { headers })
-      .pipe(
-        tap(response => console.log('Response:', response))
-      );
+  getNewStories(count: number): Observable<Story[]> {
+    return this.http.get<Story[]>(`${this.apiUrl}/News?count=${count}`);
   }
 
   searchStories(searchText: string, size: number = 20): Observable<Story[]> {
