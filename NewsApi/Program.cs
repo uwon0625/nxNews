@@ -7,16 +7,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Add CORS configuration
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAngularDev",
-        policy => policy
-            .AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-    );
-
-    options.AddPolicy("AllowAzureStaticApp",
+    options.AddPolicy("CorsPolicy",
         builder => builder
-            .WithOrigins("https://brave-sea-0ef71fa1e.4.azurestaticapps.net")
+            .WithOrigins(
+                "http://localhost:4200",
+                "https://brave-sea-0ef71fa1e.4.azurestaticapps.net")
             .AllowAnyMethod()
             .AllowAnyHeader());
 });
@@ -55,8 +50,7 @@ builder.Services.AddHttpClient<INewsService, HackerNewsService>();
 var app = builder.Build();
 
 // Important: Use UseCors before other middleware
-app.UseCors("AllowAngularDev");
-app.UseCors("AllowAzureStaticApp");
+app.UseCors("CorsPolicy");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
