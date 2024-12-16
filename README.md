@@ -1,14 +1,14 @@
 # Introduction
 
 NtNews is a sample Angular v19 web app to pull stories from [Hacker News API](https://github.com/HackerNews/API) via dotnet(SDK v8) Restful API, deployed to Azure. 
-Source repo: https://github.com/uwon0625/nxNews
-App link: https://brave-sea-0ef71fa1e.4.azurestaticapps.net
+ - Source repo: https://github.com/uwon0625/nxNews
+ - App link: https://brave-sea-0ef71fa1e.4.azurestaticapps.net
 
 **Features**
-		 - Pagination
-		 - Caching
-		 - Automated end-to-end testing (with Playwright)
-		 - Integrated Unit Testing
+- Pagination
+- Caching
+- Automated end-to-end testing (with Playwright)
+- Integrated Unit Testing
 
 # Notes
 
