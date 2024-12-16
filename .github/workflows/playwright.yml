@@ -1,0 +1,46 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'client-app/**'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      working-directory: ./client-app
+      run: npm ci
+
+    - name: Install Playwright Browsers
+      working-directory: ./client-app
+      run: npx playwright install --with-deps
+
+    - name: Build Angular app
+      working-directory: ./client-app
+      run: npm run build
+
+    - name: Run Playwright tests
+      working-directory: ./client-app
+      run: npx playwright test
+
+    - uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: playwright-report
+        path: client-app/playwright-report/
+        retention-days: 30
