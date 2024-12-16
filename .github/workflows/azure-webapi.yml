@@ -38,14 +38,21 @@ jobs:
       - name: Run Tests
         run: |
           cd NewsApi.Tests
-          dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage"
+          dotnet test --configuration Release \
+            --logger "console;verbosity=detailed" \
+            --results-directory TestResults \
+            --collect:"XPlat Code Coverage" \
+            --no-build \
+            || exit 1
         
       - name: Upload test results
         uses: actions/upload-artifact@v3
         if: always()
         with:
           name: test-results
-          path: NewsApi.Tests/TestResults/
+          path: |
+            NewsApi.Tests/TestResults
+            NewsApi.Tests/TestResults/**/coverage.cobertura.xml
           retention-days: 30
 
       # Only deploy if tests pass
