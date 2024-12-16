@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://your-production-url.com'  // Update with your production URL
+  apiUrl: 'https://black-pond-01e5cac1e.4.azurestaticapps.net'  // Update with your production URL
 }; 
