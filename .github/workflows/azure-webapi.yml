@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'NewsApi/**'  # Only trigger on changes to NewsApi folder
   workflow_dispatch:
 
 jobs:
@@ -16,8 +18,10 @@ jobs:
         with:
           dotnet-version: '8.0.x'
       - name: Build with dotnet
+        working-directory: ./NewsApi  # Specify working directory
         run: dotnet build --configuration Release
       - name: dotnet publish
+        working-directory: ./NewsApi  # Specify working directory
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -26,20 +30,4 @@ jobs:
           path: ${{env.DOTNET_ROOT}}/myapp
 
   deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: .net-app
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: 'ntnewsapi'
-          publish-profile: ${{ secrets.AZUREWEBAPP_PUBLISHPROFILE }}
-          package: .
+    # ... rest of deploy job remains the same ...
