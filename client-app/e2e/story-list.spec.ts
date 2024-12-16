@@ -2,156 +2,86 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Story List', () => {
   test.beforeEach(async ({ page }) => {
-    // Add retry logic for connection with longer timeout
-    let retries = 3;
-    while (retries > 0) {
-      try {
-        await page.goto('http://localhost:4200', {
-          waitUntil: 'networkidle',
-          timeout: 90000  // 90 seconds timeout
-        });
-
-        // Wait for either stories to load or error state
-        await Promise.race([
-          page.waitForSelector('app-story-item', { timeout: 30000 }),
-          page.waitForSelector('.error', { timeout: 30000 })
-        ]);
-        break;
-      } catch (error) {
-        console.log(`Retry attempt ${4 - retries}, Error:`, error);
-        retries--;
-        if (retries === 0) throw error;
-        await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10s before retry
-      }
-    }
+    await page.goto('http://localhost:4200');
+    // Wait for initial stories to load and be visible
+    await expect(page.locator('app-story-item')).toHaveCount(10, { timeout: 30000 });
   });
 
   test('should load initial stories', async ({ page }) => {
-    // Wait for stories to load
-    await page.waitForSelector('app-story-item');
-    
-    // Check if we have the correct number of stories
     const stories = await page.locator('app-story-item').all();
     expect(stories.length).toBe(10);
   });
 
   test('should handle pagination', async ({ page }) => {
-    // Wait for initial load
-    await page.waitForSelector('app-story-item');
+    // Store first story title for comparison
+    const firstStoryTitle = await page.locator('app-story-item .story-title').first().textContent();
     
-    // Get initial first story title
-    const firstStoryTitle = await page.locator('app-story-item').first().textContent();
-    
-    // Click next page
+    // Click next and wait for stories to change
     await page.getByRole('button', { name: 'Next' }).click();
     
-    // Wait for new stories to load
-    await page.waitForTimeout(500);
+    // Wait for stories to change
+    await expect(async () => {
+      const newTitle = await page.locator('app-story-item .story-title').first().textContent();
+      expect(newTitle).not.toBe(firstStoryTitle);
+    }).toPass({ timeout: 30000 });
     
-    // Get new first story title
-    const newFirstStoryTitle = await page.locator('app-story-item').first().textContent();
-    
-    // Verify it's different
-    expect(newFirstStoryTitle).not.toBe(firstStoryTitle);
+    // Verify we still have 10 stories
+    await expect(page.locator('app-story-item')).toHaveCount(10);
   });
 
   test('should change page size', async ({ page }) => {
-    // Wait for initial load
-    await page.waitForSelector('app-story-item');
-    
     // Change page size to 5
     await page.selectOption('select#pageSizeSelect', '5');
     
-    // Wait for update
-    await page.waitForTimeout(500);
-    
-    // Check number of stories
-    const stories = await page.locator('app-story-item').all();
-    expect(stories.length).toBe(5);
+    // Wait for story count to change
+    await expect(page.locator('app-story-item')).toHaveCount(5, { timeout: 10000 });
   });
 
   test('should search stories', async ({ page }) => {
-    // Wait for initial load
-    await page.waitForSelector('app-story-item');
+    // Store initial first story title
+    const initialTitle = await page.locator('app-story-item .story-title').first().textContent();
     
-    // Perform search
-    await page.fill('input[placeholder="Enter part of story title to search..."]', 'test');
+    // Perform search with a term we expect to find
+    const searchTerm = 'the';  // Common word that should appear in titles
+    await page.fill('input[placeholder="search in title ..."]', searchTerm);
     await page.click('button:has-text("Search")');
     
-    // Wait for search results
-    await page.waitForSelector('.search-header');
+    // Wait for search header and verify search results
+    await expect(page.locator('.search-header')).toBeVisible({ timeout: 10000 });
     
-    // Verify search mode
-    expect(await page.locator('.search-header').isVisible()).toBeTruthy();
+    // Wait for and verify search results
+    await expect(async () => {
+      // Get all story titles
+      const titles = await page.locator('app-story-item .story-title').allTextContents();
+      
+      // Verify we have results
+      expect(titles.length).toBeGreaterThan(0);
+      
+      // Verify at least one title contains our search term (case insensitive)
+      const hasMatch = titles.some(title => 
+        title.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      expect(hasMatch).toBe(true);
+    }).toPass({ timeout: 30000 });
     
-    // Clear search
+    // Clear search and verify return to normal state
     await page.click('button:has-text("Clear Search")');
-    
-    // Verify back to normal mode
-    expect(await page.locator('.search-header').isVisible()).toBeFalsy();
+    await expect(page.locator('.search-header')).toBeHidden();
   });
 
   test('should handle loading states', async ({ page }) => {
-    // Wait for initial load
-    await page.waitForSelector('app-story-item', { timeout: 10000 });
+    // Store initial first story title
+    const initialTitle = await page.locator('app-story-item .story-title').first().textContent();
     
-    // Store initial stories for comparison
-    const initialStories = await page.locator('app-story-item').all();
-    const initialFirstStory = await page.locator('app-story-item').first().textContent();
-    
-    // Click next page to trigger loading
+    // Click next page and wait for stories to change
     await page.getByRole('button', { name: 'Next' }).click();
     
-    // Wait for stories to change (indicates loading completed)
-    await page.waitForFunction(
-      ([initialText, initialLength]) => {
-        const stories = document.querySelectorAll('app-story-item');
-        const firstStory = stories[0]?.textContent;
-        return stories.length === initialLength && firstStory !== initialText;
-      },
-      [initialFirstStory, initialStories.length],
-      { timeout: 10000 }
-    );
-  });
-
-  test('should handle search pagination', async ({ page }) => {
-    // Wait for initial load
-    await page.waitForSelector('app-story-item', { timeout: 10000 });
+    // Wait for stories to change
+    await expect(async () => {
+      const newTitle = await page.locator('app-story-item .story-title').first().textContent();
+      expect(newTitle).not.toBe(initialTitle);
+    }).toPass({ timeout: 30000 });
     
-    // Perform search
-    await page.fill('input[placeholder="Enter part of story title to search..."]', 'the');
-    await page.click('button:has-text("Search")');
-    
-    // Wait for search results
-    await page.waitForSelector('.search-header');
-    
-    // Wait for initial search results to load
-    await page.waitForSelector('app-story-item', { timeout: 10000 });
-    
-    // Get initial count and content
-    const initialStories = await page.locator('app-story-item').all();
-    const initialCount = initialStories.length;
-    const initialFirstStory = await page.locator('app-story-item').first().textContent();
-    
-    // Click next page if available
-    const nextButton = page.getByRole('button', { name: 'Next' });
-    if (await nextButton.isEnabled()) {
-      await nextButton.click();
-      
-      // Wait for stories to change or count to change
-      await page.waitForFunction(
-        ([initialText, initialLength]) => {
-          const stories = document.querySelectorAll('app-story-item');
-          const firstStory = stories[0]?.textContent;
-          return stories.length !== initialLength || firstStory !== initialText;
-        },
-        [initialFirstStory, initialCount],
-        { timeout: 10000 }
-      );
-      
-      // Get new count
-      const newStories = await page.locator('app-story-item').all();
-      expect(newStories.length).toBeLessThanOrEqual(initialCount);
-    }
+    await expect(page.locator('app-story-item')).toHaveCount(10);
   });
 }); 

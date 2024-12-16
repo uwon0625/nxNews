@@ -1,3 +1,5 @@
+#nullable enable
+
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -216,8 +218,8 @@ public class HackerNewsServiceTests
         cacheEntry.SetupAllProperties();
 
         _cacheMock
-            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny))
-            .Callback(new OutCallback((object k, out object v) => 
+            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<object?>.IsAny))
+            .Callback(new OutCallback((object k, out object? v) => 
             {
                 if (k.ToString() == _storiesCacheKey)
                 {
@@ -228,7 +230,7 @@ public class HackerNewsServiceTests
                     v = null;
                 }
             }))
-            .Returns<object, object>((k, v) => k.ToString() == _storiesCacheKey);
+            .Returns<object, object?>((k, v) => k.ToString() == _storiesCacheKey);
 
         _cacheMock
             .Setup(m => m.CreateEntry(It.IsAny<object>()))
@@ -299,8 +301,8 @@ public class HackerNewsServiceTests
 
         // Setup cache mocks
         _cacheMock
-            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny))
-            .Callback(new OutCallback((object k, out object v) => 
+            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<object?>.IsAny))
+            .Callback(new OutCallback((object k, out object? v) => 
             {
                 if (k.ToString() == _storiesCacheKey)
                 {
@@ -315,7 +317,7 @@ public class HackerNewsServiceTests
                     v = null;
                 }
             }))
-            .Returns<object, object>((k, v) => k.ToString() == _storiesCacheKey);
+            .Returns<object, object?>((k, v) => k.ToString() == _storiesCacheKey);
 
         _cacheMock
             .Setup(m => m.CreateEntry(It.IsAny<object>()))
@@ -368,8 +370,8 @@ public class HackerNewsServiceTests
 
         // Setup cache mocks
         _cacheMock
-            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny))
-            .Callback(new OutCallback((object k, out object v) => v = null))
+            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<object?>.IsAny))
+            .Callback(new OutCallback((object k, out object? v) => v = null))
             .Returns(false);
 
         _cacheMock
@@ -547,8 +549,15 @@ public class HackerNewsServiceTests
         Assert.Equal(1, result[2].Id);
     }
 
-    private void SetupHttpMockResponse<T>(string url, T response)
+    private void SetupHttpMockResponse<T>(string url, T? response)
     {
+        string content = response switch
+        {
+            null => "null",
+            int intValue => intValue.ToString(),
+            _ => System.Text.Json.JsonSerializer.Serialize(response)
+        };
+
         _handlerMock
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
@@ -556,10 +565,10 @@ public class HackerNewsServiceTests
                 ItExpr.Is<HttpRequestMessage>(req => req.RequestUri!.PathAndQuery.Contains(url)),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
+            .ReturnsAsync(() => new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(System.Text.Json.JsonSerializer.Serialize(response))
+                Content = new StringContent(content)
             });
     }
 
@@ -571,8 +580,8 @@ public class HackerNewsServiceTests
 
         // Setup cache mocks
         _cacheMock
-            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny))
-            .Callback(new OutCallback((object k, out object v) => 
+            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<object?>.IsAny))
+            .Callback(new OutCallback((object k, out object? v) => 
             {
                 if (k.ToString() == _storiesCacheKey)
                 {
@@ -583,7 +592,7 @@ public class HackerNewsServiceTests
                     v = null;
                 }
             }))
-            .Returns<object, object>((k, v) => k.ToString() == _storiesCacheKey);
+            .Returns<object, object?>((k, v) => k.ToString() == _storiesCacheKey);
 
         _cacheMock
             .Setup(m => m.CreateEntry(It.IsAny<object>()))
@@ -616,8 +625,8 @@ public class HackerNewsServiceTests
 
         // Setup cache mocks
         _cacheMock
-            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny))
-            .Callback(new OutCallback((object k, out object v) => 
+            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<object?>.IsAny))
+            .Callback(new OutCallback((object k, out object? v) => 
             {
                 if (k.ToString() == _storiesCacheKey)
                 {
@@ -628,7 +637,7 @@ public class HackerNewsServiceTests
                     v = null;
                 }
             }))
-            .Returns<object, object>((k, v) => k.ToString() == _storiesCacheKey);
+            .Returns<object, object?>((k, v) => k.ToString() == _storiesCacheKey);
 
         _cacheMock
             .Setup(m => m.CreateEntry(It.IsAny<object>()))
@@ -645,8 +654,8 @@ public class HackerNewsServiceTests
         cacheEntry.SetupAllProperties();
 
         _cacheMock
-            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny))
-            .Callback(new OutCallback((object k, out object v) => 
+            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<object?>.IsAny))
+            .Callback(new OutCallback((object k, out object? v) => 
             {
                 if (k.ToString() == _storiesCacheKey)
                     v = _storiesCache;
@@ -655,7 +664,7 @@ public class HackerNewsServiceTests
                 else
                     v = null;
             }))
-            .Returns<object, object>((k, v) => k.ToString() == _storiesCacheKey);
+            .Returns<object, object?>((k, v) => k.ToString() == _storiesCacheKey);
 
         _cacheMock
             .Setup(m => m.CreateEntry(It.IsAny<object>()))
@@ -665,7 +674,7 @@ public class HackerNewsServiceTests
     }
 
     // Add this delegate at class level
-    private delegate void OutCallback(object key, out object value);
+    private delegate void OutCallback(object key, out object? value);
 
     private void SetupAllConfiguration()
     {
