@@ -24,15 +24,13 @@ jobs:
 
     - name: Install dependencies
       working-directory: ./client-app
-      run: npm ci
+      run: |
+        npm ci
+        npm run build
 
     - name: Install Playwright Browsers
       working-directory: ./client-app
       run: npx playwright install --with-deps
-
-    - name: Build Angular app
-      working-directory: ./client-app
-      run: npm run build
 
     - name: Run Playwright tests
       working-directory: ./client-app
