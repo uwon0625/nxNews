@@ -1,28 +1,60 @@
-name: Build and deploy ASP.Net Core app to Azure Web App
+name: Build, Test and Deploy ASP.Net Core app
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
     paths:
-      - 'NewsApi/**'  # Only trigger on changes to NewsApi folder
+      - 'NewsApi/**'
+      - 'NewsApi.Tests/**'
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
-      - name: Build with dotnet
-        working-directory: ./NewsApi  # Specify working directory
-        run: dotnet build --configuration Release
-      - name: dotnet publish
-        working-directory: ./NewsApi  # Specify working directory
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+          
+      - name: Restore dependencies
+        run: |
+          cd NewsApi
+          dotnet restore
+          cd ../NewsApi.Tests
+          dotnet restore
+          
+      - name: Build
+        run: |
+          cd NewsApi
+          dotnet build --configuration Release --no-restore
+          cd ../NewsApi.Tests
+          dotnet build --configuration Release --no-restore
+        
+      - name: Run Tests
+        run: |
+          cd NewsApi.Tests
+          dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage"
+        
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results
+          path: NewsApi.Tests/TestResults/
+          retention-days: 30
+
+      # Only deploy if tests pass
+      - name: Publish API
+        if: success()
+        run: |
+          cd NewsApi
+          dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
@@ -31,7 +63,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build
+    needs: build-and-test
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
