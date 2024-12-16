@@ -1,4 +1,4 @@
-name: Playwright Tests
+name: Playwright Tests(with client-app deployment)
 
 on:
   push:
@@ -61,6 +61,8 @@ jobs:
       run: |
         npm ci
         npm run build --configuration=production
+        echo "Listing dist directory contents:"
+        ls -la dist/
 
     - name: Deploy to Azure Static Web Apps
       uses: Azure/static-web-apps-deploy@v1
@@ -69,7 +71,7 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         action: "upload"
         app_location: "client-app"
-        output_location: "dist/browser"
+        output_location: "dist"
         skip_app_build: false
       env:
         NODE_VERSION: '20'
