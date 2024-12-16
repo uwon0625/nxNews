@@ -16,7 +16,7 @@ builder.Services.AddCors(options =>
 
     options.AddPolicy("AllowAzureStaticApp",
         builder => builder
-            .WithOrigins("https://black-pond-01e5cac1e.4.azurestaticapps.net")
+            .WithOrigins("https://brave-sea-0ef71fa1e.4.azurestaticapps.net")
             .AllowAnyMethod()
             .AllowAnyHeader());
 });
@@ -54,7 +54,7 @@ builder.Services.AddHttpClient<INewsService, HackerNewsService>();
 
 var app = builder.Build();
 
-// Enable CORS - make sure this is before other middleware
+// Important: Use UseCors before other middleware
 app.UseCors("AllowAngularDev");
 app.UseCors("AllowAzureStaticApp");
 

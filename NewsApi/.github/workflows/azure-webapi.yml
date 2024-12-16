@@ -24,7 +24,7 @@ jobs:
       - name: dotnet publish
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
-      - name: Upload artifact for deployment job
+      - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: .net-app
@@ -38,7 +38,7 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v3
         with:
           name: .net-app
@@ -47,7 +47,6 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'your-api-name'
-          slot-name: 'Production'
+          app-name: 'ntnewsapi'
           publish-profile: ${{ secrets.AZUREWEBAPP_PUBLISHPROFILE }}
           package: . 
