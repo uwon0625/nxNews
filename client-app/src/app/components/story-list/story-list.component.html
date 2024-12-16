@@ -3,35 +3,22 @@
     <input 
       type="text" 
       [(ngModel)]="searchText" 
-      placeholder="Enter part of story title to search..."
+      placeholder="search in title ..."
       (keyup.enter)="handleSearch()"
     >
-    <button (click)="handleSearch()">Search</button>
+    <button class="primary-button" (click)="handleSearch()">Search</button>
   </div>
 
   <div *ngIf="isSearchMode" class="search-header">
     <div class="search-info">
       Showing results for "{{searchText}}"
     </div>
-    <button class="clear-search" (click)="clearSearch()">
+    <button class="clear-search primary-button" (click)="clearSearch()">
       Clear Search
     </button>
   </div>
 
   <div class="stories-section" [class.loading-overlay]="isLoading">
-    <div class="controls" *ngIf="!isSearchMode">
-      <label for="pageSizeSelect">Items per page:</label>
-      <select 
-        id="pageSizeSelect"
-        [(ngModel)]="pageSize" 
-        (change)="onPageSizeChange()">
-        <option [value]="5">5</option>
-        <option [value]="10" selected>10</option>
-        <option [value]="20">20</option>
-        <option [value]="50">50</option>
-      </select>
-    </div>
-
     <div class="stories">
       <app-story-item 
         *ngFor="let story of stories; let i = index" 
@@ -41,6 +28,19 @@
     </div>
 
     <div class="pagination">
+      <div style="margin-right: 15px;" *ngIf="!isSearchMode">
+        <label for="pageSizeSelect" style="margin-right: 5px;">Items per page</label>
+        <select 
+          id="pageSizeSelect"
+          [(ngModel)]="pageSize" 
+          (change)="onPageSizeChange()">
+          <option [value]="5">5</option>
+          <option [value]="10" selected>10</option>
+          <option [value]="20">20</option>
+          <option [value]="50">50</option>
+        </select>
+      </div>
+
       <button 
         (click)="previousPage()" 
         [disabled]="!canGoPrevious">
@@ -54,9 +54,6 @@
       </button>
     </div>
 
-    <div *ngIf="isLoading" class="loading-indicator">
-      Loading stories...
-    </div>
   </div>
 
   <div *ngIf="error" class="error">

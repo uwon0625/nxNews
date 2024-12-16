@@ -24,6 +24,8 @@ export class StoryListComponent implements OnInit {
   isSearchMode = false;
   searchText = '';
   private lastSearchText = '';
+  private _canGoPrevious = false;
+  private _canGoNext = true;
 
   constructor(private newsService: NewsService) {}
 
@@ -35,141 +37,88 @@ export class StoryListComponent implements OnInit {
     this.isLoading = true;
     this.error = null;
     
-    const storiesNeeded = this.currentPage * this.pageSize;
-    
-    this.newsService.getNewStories(storiesNeeded)
+    this.newsService.getNewStories(this.pageSize)
       .subscribe({
         next: (stories) => {
-          console.log('Initial stories loaded:', stories);
           this.allLoadedStories = stories;
           this.maxId = stories.length > 0 ? stories[0].id : 0;
-          this.hasMoreStories = stories.length >= this.pageSize;
-          this.updateCurrentPageStories();
+          this.hasMoreStories = stories.length === this.pageSize;
+          this.updateDisplayedStories();
           this.isLoading = false;
         },
         error: (error) => {
           this.error = 'Failed to load stories';
           this.isLoading = false;
-          console.error('Error:', error);
         }
       });
+  }
+
+  updateDisplayedStories() {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.stories = this.allLoadedStories.slice(startIndex, endIndex);
+    
+    this._canGoPrevious = this.currentPage > 1;
+    this._canGoNext = !this.isLoading;
   }
 
   onPageSizeChange() {
-    const oldPageSize = this.pageSize;
-    const currentFirstItemIndex = (this.currentPage - 1) * oldPageSize;
-    
-    this.currentPage = Math.floor(currentFirstItemIndex / this.pageSize) + 1;
-    
-    const totalNeeded = this.currentPage * this.pageSize;
-    const available = this.allLoadedStories.length;
-
-    if (available >= totalNeeded) {
-      this.updateCurrentPageStories();
-    } else {
-      const needToLoad = totalNeeded - available;
-      const lastStory = this.allLoadedStories[available - 1];
-      const startId = lastStory ? lastStory.id - 1 : 0;
-      
-      if (startId > 1) {
-        this.loadMoreStories(needToLoad);
-      } else {
-        this.updateCurrentPageStories();
-      }
-    }
-  }
-
-  updateCurrentPageStories() {
-    const startIndex = (this.currentPage - 1) * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    
-    this.stories = this.allLoadedStories.slice(startIndex, endIndex);
-    
-    if (this.isSearchMode) {
-      this.hasMoreStories = this.allLoadedStories.length > endIndex ||
-                           this.stories.length === this.pageSize;
-    } else {
-      const lastStoryId = this.allLoadedStories[this.allLoadedStories.length - 1]?.id;
-      this.hasMoreStories = lastStoryId > 1;
-
-      if (this.stories.length < this.pageSize && this.hasMoreStories) {
-        const neededStories = this.pageSize - this.stories.length;
-        this.loadMoreStories(neededStories);
-      }
-    }
-  }
-
-  loadMoreStories(amount: number = this.pageSize) {
-    if (this.isLoading) return;
-    
-    const requestAmount = Math.min(amount, this.pageSize);
-    
-    this.isLoading = true;
-    this.error = null;
-    
-    const lastLoadedStory = this.allLoadedStories[this.allLoadedStories.length - 1];
-    const startId = lastLoadedStory ? lastLoadedStory.id - 1 : 0;
-    
-    console.log('Loading more stories with startId:', startId, 'amount:', requestAmount);
-    
-    this.newsService.getStories(startId, requestAmount)
-      .subscribe({
-        next: (stories) => {
-          console.log('Additional stories loaded:', stories);
-          this.allLoadedStories = [...this.allLoadedStories, ...stories];
-          this.updateCurrentPageStories();
-          this.isLoading = false;
-        },
-        error: (error) => {
-          this.error = 'Failed to load stories';
-          this.isLoading = false;
-          console.error('Error:', error);
-        }
-      });
-  }
-
-  previousPage() {
-    if (this.currentPage > 1 && !this.isLoading) {
-      this.currentPage--;
-      this.updateCurrentPageStories();
-    }
-  }
-
-  nextPage() {
-    if (!this.isLoading && this.hasMoreStories) {
-      this.currentPage++;
-      
-      if (this.isSearchMode) {
-        const startIndex = (this.currentPage - 1) * this.pageSize;
-        if (startIndex < this.allLoadedStories.length) {
-          this.updateCurrentPageStories();
-        } else {
-          this.isLoading = true;
-          this.searchFromApi(this.lastSearchText);
-        }
-      } else {
-        const nextPageStart = this.currentPage * this.pageSize;
-        if (nextPageStart >= this.allLoadedStories.length) {
-          this.loadMoreStories(this.pageSize);
-        } else {
-          const remainingStories = this.allLoadedStories.length - nextPageStart;
-          if (remainingStories < this.pageSize) {
-            const neededStories = this.pageSize - remainingStories;
-            this.loadMoreStories(neededStories);
-          } else {
-            this.updateCurrentPageStories();
-          }
-        }
-      }
-    }
+    this.currentPage = 1;
+    this.updateDisplayedStories();
   }
 
   get canGoNext(): boolean {
-    return this.hasMoreStories && !this.isLoading;
+    return !this.isLoading;
   }
 
   get canGoPrevious(): boolean {
     return this.currentPage > 1 && !this.isLoading;
+  }
+
+  nextPage() {
+    if (this.canGoNext && !this.isLoading) {
+      const nextPageStart = this.currentPage * this.pageSize;
+      
+      if (nextPageStart + this.pageSize > this.allLoadedStories.length) {
+        this.ensureDataLoaded(nextPageStart + this.pageSize);
+      } else {
+        this.currentPage++;
+        this.updateDisplayedStories();
+      }
+    }
+  }
+
+  previousPage() {
+    if (this.canGoPrevious) {
+      this.currentPage--;
+      this.updateDisplayedStories();
+    }
+  }
+
+  private ensureDataLoaded(requiredCount: number) {
+    if (requiredCount > this.allLoadedStories.length) {
+      this.isLoading = true;
+      const lastStoryId = this.allLoadedStories[this.allLoadedStories.length - 1]?.id;
+      
+      this.newsService.getStories(lastStoryId, this.pageSize)
+        .subscribe({
+          next: (newStories) => {
+            if (newStories.length > 0) {
+              this.allLoadedStories = [...this.allLoadedStories, ...newStories];
+              this.hasMoreStories = newStories.length === this.pageSize;
+              this.currentPage++;
+              this.updateDisplayedStories();
+            } else {
+              this.hasMoreStories = false;
+            }
+            this.isLoading = false;
+          },
+          error: (error) => {
+            this.error = 'Failed to load stories';
+            this.isLoading = false;
+          }
+        });
+    }
   }
 
   handleSearch() {
@@ -226,7 +175,7 @@ export class StoryListComponent implements OnInit {
 
   private handleSearchResults(results: Story[]) {
     this.allLoadedStories = results;
-    this.updateCurrentPageStories();
+    this.updateDisplayedStories();
     this.isLoading = false;
   }
 
@@ -234,13 +183,10 @@ export class StoryListComponent implements OnInit {
     this.isSearchMode = false;
     this.searchText = '';
     this.lastSearchText = '';
+    this.currentPage = 1;
 
-    const neededStories = this.currentPage * this.pageSize;
-    if (this.allLoadedStories.length < neededStories) {
-      const startId = this.maxId - ((this.currentPage - 1) * this.pageSize);
-      this.loadMoreStories(this.pageSize);
-    } else {
-      this.updateCurrentPageStories();
-    }
+    const neededStories = this.pageSize;
+    this.ensureDataLoaded(neededStories);
   }
 }
+

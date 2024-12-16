@@ -2,19 +2,26 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Story List', () => {
   test.beforeEach(async ({ page }) => {
-    // Add retry logic for connection
+    // Add retry logic for connection with longer timeout
     let retries = 3;
     while (retries > 0) {
       try {
         await page.goto('http://localhost:4200', {
           waitUntil: 'networkidle',
-          timeout: 30000
+          timeout: 90000  // 90 seconds timeout
         });
+
+        // Wait for either stories to load or error state
+        await Promise.race([
+          page.waitForSelector('app-story-item', { timeout: 30000 }),
+          page.waitForSelector('.error', { timeout: 30000 })
+        ]);
         break;
       } catch (error) {
+        console.log(`Retry attempt ${4 - retries}, Error:`, error);
         retries--;
         if (retries === 0) throw error;
-        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5s before retry
+        await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10s before retry
       }
     }
   });

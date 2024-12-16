@@ -1,6 +1,7 @@
 <div class="story-item">
-  <span class="story-order">{{ order }}.</span>
-  <a [href]="story.url" target="_blank" class="story-title">
-    {{ story.title }}
+  <span class="sequence-number">{{sequenceNumber}}.</span>
+  <a [href]="story.url" target="_blank" class="story-link">
+    <span class="story-title">{{story.title}}</span>
+    <span class="story-url">{{story.url}}</span>
   </a>
 </div>

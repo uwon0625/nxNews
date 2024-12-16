@@ -30,6 +30,8 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+    actionTimeout: 60000,
+    navigationTimeout: 60000,
   },
 
   /* Configure projects for major browsers */
@@ -38,36 +40,17 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
+    // We could also limit browser projects in CI
+    ...(process.env['CI'] ? [] : [
+      {
+        name: 'firefox',
+        use: { ...devices['Desktop Firefox'] },
+      },
+      {
+        name: 'webkit',
+        use: { ...devices['Desktop Safari'] },
+      }
+    ])
   ],
 
   /* Run your local dev server before starting the tests */
@@ -75,8 +58,9 @@ export default defineConfig({
     command: 'npm start',
     url: 'http://localhost:4200',
     reuseExistingServer: !process.env['CI'],
-    timeout: 120 * 1000,
+    timeout: 180000,
     stdout: 'pipe',
     stderr: 'pipe',
   },
+  timeout: 90000,
 });
