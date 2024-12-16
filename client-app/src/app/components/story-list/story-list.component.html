@@ -1,0 +1,65 @@
+<div class="story-list-container">
+  <div class="search-container">
+    <input 
+      type="text" 
+      [(ngModel)]="searchText" 
+      placeholder="Enter part of story title to search..."
+      (keyup.enter)="handleSearch()"
+    >
+    <button (click)="handleSearch()">Search</button>
+  </div>
+
+  <div *ngIf="isSearchMode" class="search-header">
+    <div class="search-info">
+      Showing results for "{{searchText}}"
+    </div>
+    <button class="clear-search" (click)="clearSearch()">
+      Clear Search
+    </button>
+  </div>
+
+  <div class="stories-section" [class.loading-overlay]="isLoading">
+    <div class="controls" *ngIf="!isSearchMode">
+      <label for="pageSizeSelect">Items per page:</label>
+      <select 
+        id="pageSizeSelect"
+        [(ngModel)]="pageSize" 
+        (change)="onPageSizeChange()">
+        <option [value]="5">5</option>
+        <option [value]="10" selected>10</option>
+        <option [value]="20">20</option>
+        <option [value]="50">50</option>
+      </select>
+    </div>
+
+    <div class="stories">
+      <app-story-item 
+        *ngFor="let story of stories; let i = index" 
+        [story]="story"
+        [sequenceNumber]="(currentPage - 1) * pageSize + i + 1">
+      </app-story-item>
+    </div>
+
+    <div class="pagination">
+      <button 
+        (click)="previousPage()" 
+        [disabled]="!canGoPrevious">
+        Previous
+      </button>
+      <span>Page {{ currentPage }}</span>
+      <button 
+        (click)="nextPage()" 
+        [disabled]="!canGoNext">
+        Next
+      </button>
+    </div>
+
+    <div *ngIf="isLoading" class="loading-indicator">
+      Loading stories...
+    </div>
+  </div>
+
+  <div *ngIf="error" class="error">
+    {{ error }}
+  </div>
+</div>
