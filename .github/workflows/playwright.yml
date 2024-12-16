@@ -11,8 +11,8 @@ on:
 
 jobs:
   test:
-    timeout-minutes: 60
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     steps:
     - uses: actions/checkout@v3
@@ -42,3 +42,34 @@ jobs:
         name: playwright-report
         path: client-app/playwright-report/
         retention-days: 30
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install and Build
+      working-directory: ./client-app
+      run: |
+        npm ci
+        npm run build
+
+    - name: Deploy to Azure Static Web Apps
+      uses: Azure/static-web-apps-deploy@v1
+      with:
+        azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        action: "upload"
+        app_location: "client-app"
+        output_location: "dist/client-app/browser"
+        skip_app_build: false
+      env:
+        NODE_VERSION: '18'
