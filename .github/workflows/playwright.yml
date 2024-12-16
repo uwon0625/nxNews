@@ -61,10 +61,16 @@ jobs:
       run: |
         npm ci
         npm run build --configuration=production
-        echo "Listing all dist contents recursively:"
-        ls -R dist/
-        echo "Full path to index.html:"
-        find dist -name index.html
+        echo "Directory structure:"
+        tree dist/
+        echo "Finding index.html:"
+        find dist -type f -name "index.html"
+        echo "Content of dist directory:"
+        ls -la dist/
+        echo "Content of dist/client-app directory:"
+        ls -la dist/client-app/ || echo "dist/client-app not found"
+        echo "Content of dist/client-app/browser directory:"
+        ls -la dist/client-app/browser/ || echo "dist/client-app/browser not found"
 
     - name: Deploy to Azure Static Web Apps
       uses: Azure/static-web-apps-deploy@v1
@@ -73,7 +79,7 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         action: "upload"
         app_location: "/client-app"
-        output_location: "dist/client-app"
+        output_location: "dist/client-app/browser"
         skip_app_build: false
       env:
         NODE_VERSION: '20'
