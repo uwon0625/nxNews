@@ -6,17 +6,16 @@
   align-items: baseline;
 }
 
-.story-order {
-  min-width: 30px;
+.sequence-number {
+  margin-right: 10px;
   color: #666;
-  font-size: 14px;
+  min-width: 25px;
 }
 
 .story-title {
-  color: #333;
   text-decoration: none;
-  font-size: 16px;
-
+  color: #333;
+  
   &:hover {
     color: #666;
     text-decoration: underline;

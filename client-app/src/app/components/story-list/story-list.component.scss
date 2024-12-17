@@ -175,3 +175,10 @@
     cursor: not-allowed;
   }
 }
+
+.stories {
+  app-story-item.odd {
+    display: block;
+    background-color: #edf2f7;
+  }
+}

@@ -23,7 +23,8 @@
       <app-story-item 
         *ngFor="let story of stories; let i = index" 
         [story]="story"
-        [sequenceNumber]="(currentPage - 1) * pageSize + i + 1">
+        [sequenceNumber]="(currentPage - 1) * pageSize + i + 1"
+        [class.odd]="i % 2 === 0">
       </app-story-item>
     </div>
 
