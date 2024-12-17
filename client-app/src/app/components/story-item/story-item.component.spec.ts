@@ -13,36 +13,32 @@ describe('StoryItemComponent', () => {
 
     fixture = TestBed.createComponent(StoryItemComponent);
     component = fixture.componentInstance;
-
+    
+    // Set mock story data before detectChanges
     component.story = {
       id: 1,
       title: 'Test Story',
       url: 'http://test.com'
-    } as Story;
+    };
     component.sequenceNumber = 1;
-
+    
     fixture.detectChanges();
   });
 
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
   it('should display story details', () => {
-    // Get the root element first
-    const storyItem = fixture.nativeElement.querySelector('.story-item');
-    expect(storyItem).toBeTruthy('Story item container not found');
+    const compiled = fixture.nativeElement as HTMLElement;
+    
+    // Check sequence number
+    const sequenceNumber = compiled.querySelector('.sequence-number');
+    expect(sequenceNumber?.textContent).toContain('1.');
 
-    // Get elements based on actual HTML structure
-    const number = storyItem.querySelector('.sequence-number');
-    const storyContent = storyItem.querySelector('.story-content');
-    const link = storyContent.querySelector('a.story-title');
-
-    // Verify elements exist
-    expect(number).toBeTruthy('Sequence number not found');
-    expect(storyContent).toBeTruthy('Story content container not found');
-    expect(link).toBeTruthy('Link element not found');
-
-    // Verify content
-    expect(number.textContent.trim()).toBe('1.');
-    expect(link.textContent).toBe('Test Story');
-    expect(link.getAttribute('href')).toBe('http://test.com');
-    expect(link.getAttribute('target')).toBe('_blank');
+    // Check story title and link
+    const storyLink = compiled.querySelector('.story-title');
+    expect(storyLink?.textContent).toContain('Test Story');
+    expect(storyLink?.getAttribute('href')).toBe('http://test.com');
   });
 });

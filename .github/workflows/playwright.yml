@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  build-test:
     runs-on: ubuntu-latest
     continue-on-error: true
 
@@ -48,7 +48,7 @@ jobs:
         retention-days: 30
 
   deploy:
-    needs: test
+    needs: build-test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 

@@ -35,7 +35,7 @@ To run it locally:
 	 - npm cache clean --force && ng serve
 	 - check it at http://localhost:4200/ (need above NewsApi running or no story is loaded)  
 	 - run end-to-end tests:  
-		 - npm run test:e2e
+		 - npm run test:e2e:dev
 		 - check result at http://localhost:9323/ (or "npx playwright show-report")
  
 ## What's next?

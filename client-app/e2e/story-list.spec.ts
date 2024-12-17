@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Story List', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:4200');
+    await page.goto('/');
     await expect(page.locator('app-story-item')).toHaveCount(10, { timeout: 30000 });
   });
 
