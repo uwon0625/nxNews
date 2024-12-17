@@ -38,7 +38,14 @@ jobs:
 
     - name: Run Playwright tests
       working-directory: ./client-app
-      run: npx playwright test
+      run: |
+        if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          npm run test:e2e:prod
+        else
+          npm run test:e2e
+        fi
+      env:
+        ENV: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
 
     - uses: actions/upload-artifact@v3
       if: always()

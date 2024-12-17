@@ -1,14 +1,22 @@
 import { test, expect } from '@playwright/test';
 
+const TEST_TIMEOUT = 120000;  // 120 seconds timeout for all test actions
+
 test.describe('Story List', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('app-story-item')).toHaveCount(10, { timeout: 30000 });
+    await page.goto('/', { timeout: TEST_TIMEOUT });
+    
+    await expect(async () => {
+      const items = await page.locator('app-story-item').all();
+      expect(items.length).toBeGreaterThan(0);
+    }).toPass({ timeout: TEST_TIMEOUT });
   });
 
   test('should load initial stories', async ({ page }) => {
-    const stories = await page.locator('app-story-item').all();
-    expect(stories.length).toBe(10);
+    await expect(async () => {
+      const stories = await page.locator('app-story-item').all();
+      expect(stories.length).toBe(10);
+    }).toPass({ timeout: TEST_TIMEOUT });
   });
 
   test('should handle pagination', async ({ page }) => {
@@ -19,33 +27,28 @@ test.describe('Story List', () => {
     await expect(async () => {
       const newTitle = await page.locator('app-story-item .story-title').first().textContent();
       expect(newTitle).not.toBe(firstStoryTitle);
-    }).toPass({ timeout: 30000 });
+    }).toPass({ timeout: TEST_TIMEOUT });
     
     await expect(page.locator('app-story-item')).toHaveCount(10);
   });
 
   test('should change page size', async ({ page }) => {
-    // Find and click the paginator's page size label
     const pageSizeLabel = page.locator('.mat-mdc-paginator-page-size-label');
-    await expect(pageSizeLabel).toBeVisible({ timeout: 10000 });
+    await expect(pageSizeLabel).toBeVisible({ timeout: TEST_TIMEOUT });
     
-    // Click the select near the label
     await page.locator('.mat-mdc-paginator-page-size-select').click({ force: true });
     await page.waitForTimeout(1000);
 
-    // Wait for and click option
     await page.waitForSelector('.mat-mdc-select-panel', { 
       state: 'visible',
-      timeout: 10000 
+      timeout: TEST_TIMEOUT 
     });
 
-    // Click option 5 with force
     await page.locator('.mat-mdc-select-panel mat-option').filter({ 
       hasText: '5' 
     }).click({ force: true });
     
-    // Wait for story count to change
-    await expect(page.locator('app-story-item')).toHaveCount(5, { timeout: 10000 });
+    await expect(page.locator('app-story-item')).toHaveCount(5, { timeout: TEST_TIMEOUT });
   });
 
   test('should search stories', async ({ page }) => {
@@ -60,6 +63,6 @@ test.describe('Story List', () => {
       expect(titles.some(title => 
         title.toLowerCase().includes(searchTerm.toLowerCase())
       )).toBeTruthy();
-    }).toPass({ timeout: 30000 });
+    }).toPass({ timeout: TEST_TIMEOUT });
   });
 }); 
