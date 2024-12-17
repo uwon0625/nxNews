@@ -16,10 +16,11 @@ describe('StoryListComponent', () => {
   ];
 
   beforeEach(async () => {
-    newsServiceSpy = jasmine.createSpyObj('NewsService', ['getStories', 'searchStories']);
+    newsServiceSpy = jasmine.createSpyObj('NewsService', ['getNewStories', 'searchStories', 'getStories']);
     
-    newsServiceSpy.getStories.and.returnValue(of(mockStories));
+    newsServiceSpy.getNewStories.and.returnValue(of(mockStories));
     newsServiceSpy.searchStories.and.returnValue(of(mockStories));
+    newsServiceSpy.getStories.and.returnValue(of(mockStories));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -41,9 +42,25 @@ describe('StoryListComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should load initial stories', () => {
-    expect(newsServiceSpy.getStories).toHaveBeenCalledWith(0, 10);
-    expect(component.stories.length).toBe(mockStories.length);
+  it('should load initial stories with correct page size', () => {
+    // Setup mock stories with more items than page size
+    const manyMockStories = Array.from({ length: 20 }, (_, i) => ({
+      id: i + 1,
+      title: `Story ${i + 1}`,
+      url: `http://test${i + 1}.com`
+    }));
+    
+    newsServiceSpy.getNewStories.and.returnValue(of(manyMockStories));
+    
+    // Create new component instance to trigger ngOnInit
+    fixture = TestBed.createComponent(StoryListComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    // Verify initial load
+    expect(newsServiceSpy.getNewStories).toHaveBeenCalledWith(10);
+    expect(component.allLoadedStories.length).toBe(20);  // All stories stored
+    expect(component.stories.length).toBe(10);           // But only 10 displayed
   });
 
   it('should handle search', () => {
@@ -63,5 +80,17 @@ describe('StoryListComponent', () => {
     
     expect(component.searchText).toBe('');
     expect(component.isSearchMode).toBeFalse();
+    
+    const lastStoryId = mockStories[mockStories.length - 1].id;
+    expect(newsServiceSpy.getStories).toHaveBeenCalledWith(lastStoryId, 10);
+  });
+
+  it('should load more stories when needed', () => {
+    component.allLoadedStories = [...mockStories];
+    const lastStoryId = mockStories[mockStories.length - 1].id;
+    
+    component.nextPage();
+    
+    expect(newsServiceSpy.getStories).toHaveBeenCalledWith(lastStoryId, 10);
   });
 });

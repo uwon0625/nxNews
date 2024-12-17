@@ -35,10 +35,11 @@ export class StoryListComponent implements OnInit {
 
   loadStories() {
     this.isLoading = true;
-    this.newsService.getStories(0, this.pageSize)
+    this.newsService.getNewStories(this.pageSize)
       .subscribe({
         next: (stories) => {
-          this.stories = stories;
+          this.allLoadedStories = stories;
+          this.updateDisplayedStories();
           this.isLoading = false;
         },
         error: (error) => {
@@ -184,4 +185,6 @@ export class StoryListComponent implements OnInit {
     this.ensureDataLoaded(neededStories);
   }
 }
+
+
 
