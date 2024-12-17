@@ -11,8 +11,8 @@ NtNews is a sample Angular v19 web app to pull stories from [Hacker News API](ht
 - Integrated Unit Testing
 
 # Screenshots
-<img src="https://github.com/uwon0625/nxNews/blob/main/assets/images/app-view.png" alt="App View" width="200" height="500">
-<img src="https://github.com/uwon0625/nxNews/blob/main/assets/images/swagger.png" alt="Swagger Api Doc" width="200" height="500">
+<img src="https://github.com/uwon0625/nxNews/blob/main/assets/images/app-view.png" alt="App View" width="200">
+<img src="https://github.com/uwon0625/nxNews/blob/main/assets/images/swagger.png" alt="Swagger Api Doc" width="200">
 
 # Notes
 
