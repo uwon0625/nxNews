@@ -52,3 +52,4 @@ We will continue to make improvements for:
  - persist some of the  data locally(between cache and Hacker News API)
  - authorization(with jwt) to make the app secure and meaningful to our users
  - and more to come
+
