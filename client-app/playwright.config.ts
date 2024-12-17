@@ -40,27 +40,22 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-    // We could also limit browser projects in CI
-    ...(process.env['CI'] ? [] : [
-      {
-        name: 'firefox',
-        use: { ...devices['Desktop Firefox'] },
-      },
-      {
-        name: 'webkit',
-        use: { ...devices['Desktop Safari'] },
-      }
-    ])
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    }
   ],
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npm start',
+    command: 'npm run start',
     url: 'http://localhost:4200',
     reuseExistingServer: !process.env['CI'],
-    timeout: 180000,
-    stdout: 'pipe',
-    stderr: 'pipe',
+    timeout: 120000,
   },
   timeout: 90000,
 });

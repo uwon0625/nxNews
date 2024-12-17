@@ -27,33 +27,14 @@
       </app-story-item>
     </div>
 
-    <div class="pagination">
-      <div style="margin-right: 15px;" *ngIf="!isSearchMode">
-        <label for="pageSizeSelect" style="margin-right: 5px;">Items per page</label>
-        <select 
-          id="pageSizeSelect"
-          [(ngModel)]="pageSize" 
-          (change)="onPageSizeChange()">
-          <option [value]="5">5</option>
-          <option [value]="10" selected>10</option>
-          <option [value]="20">20</option>
-          <option [value]="50">50</option>
-        </select>
-      </div>
-
-      <button 
-        (click)="previousPage()" 
-        [disabled]="!canGoPrevious">
-        Previous
-      </button>
-      <span>Page {{ currentPage }}</span>
-      <button 
-        (click)="nextPage()" 
-        [disabled]="!canGoNext">
-        Next
-      </button>
-    </div>
-
+    <mat-paginator
+      [length]="allLoadedStories.length"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[5, 10, 20]"
+      [disabled]="isLoading"
+      (page)="onPageChange($event)"
+      aria-label="Select page">
+    </mat-paginator>
   </div>
 
   <div *ngIf="error" class="error">

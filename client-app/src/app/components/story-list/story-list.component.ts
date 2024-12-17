@@ -4,11 +4,18 @@ import { FormsModule } from '@angular/forms';
 import { NewsService } from '../../services/news.service';
 import { Story } from '../../models/story';
 import { StoryItemComponent } from '../story-item/story-item.component';
+import { MaterialModule } from '../../material.module';
+import { PageEvent } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-story-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, StoryItemComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    StoryItemComponent, 
+    MaterialModule
+  ],
   templateUrl: './story-list.component.html',
   styleUrls: ['./story-list.component.scss']
 })
@@ -25,7 +32,6 @@ export class StoryListComponent implements OnInit {
   searchText = '';
   private lastSearchText = '';
   private _canGoPrevious = false;
-  private _canGoNext = true;
 
   constructor(private newsService: NewsService) {}
 
@@ -55,7 +61,41 @@ export class StoryListComponent implements OnInit {
     this.stories = this.allLoadedStories.slice(startIndex, endIndex);
     
     this._canGoPrevious = this.currentPage > 1;
-    this._canGoNext = !this.isLoading;
+
+    if (this.isOnLastLoadedPage()) {
+      this.prefetchNextPage();
+    }
+  }
+
+  private isOnLastLoadedPage(): boolean {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    return startIndex + this.pageSize >= this.allLoadedStories.length;
+  }
+
+  private prefetchNextPage() {
+    if (!this.isLoading && this.hasMoreStories) {
+      const lastStoryId = this.allLoadedStories[this.allLoadedStories.length - 1]?.id;
+      
+      if (lastStoryId) {
+        this.newsService.getStories(lastStoryId, this.pageSize)
+          .subscribe({
+            next: (newStories) => {
+              if (newStories.length > 0) {
+                const existingIds = new Set(this.allLoadedStories.map(story => story.id));
+                const uniqueNewStories = newStories.filter(story => !existingIds.has(story.id));
+                
+                this.allLoadedStories = [...this.allLoadedStories, ...uniqueNewStories];
+                this.hasMoreStories = newStories.length === this.pageSize;
+              } else {
+                this.hasMoreStories = false;
+              }
+            },
+            error: (error) => {
+              console.error('Failed to prefetch next page:', error);
+            }
+          });
+      }
+    }
   }
 
   onPageSizeChange() {
@@ -68,18 +108,18 @@ export class StoryListComponent implements OnInit {
   }
 
   get canGoPrevious(): boolean {
-    return this.currentPage > 1 && !this.isLoading;
+    return this._canGoPrevious && !this.isLoading;
   }
 
   nextPage() {
     if (this.canGoNext && !this.isLoading) {
       const nextPageStart = this.currentPage * this.pageSize;
       
+      this.currentPage++;
+      this.updateDisplayedStories();
+      
       if (nextPageStart + this.pageSize > this.allLoadedStories.length) {
         this.ensureDataLoaded(nextPageStart + this.pageSize);
-      } else {
-        this.currentPage++;
-        this.updateDisplayedStories();
       }
     }
   }
@@ -96,13 +136,21 @@ export class StoryListComponent implements OnInit {
       this.isLoading = true;
       const lastStoryId = this.allLoadedStories[this.allLoadedStories.length - 1]?.id;
       
+      if (!lastStoryId) {
+        this.error = 'Failed to load more stories';
+        this.isLoading = false;
+        return;
+      }
+
       this.newsService.getStories(lastStoryId, this.pageSize)
         .subscribe({
           next: (newStories) => {
             if (newStories.length > 0) {
-              this.allLoadedStories = [...this.allLoadedStories, ...newStories];
+              const existingIds = new Set(this.allLoadedStories.map(story => story.id));
+              const uniqueNewStories = newStories.filter(story => !existingIds.has(story.id));
+              
+              this.allLoadedStories = [...this.allLoadedStories, ...uniqueNewStories];
               this.hasMoreStories = newStories.length === this.pageSize;
-              this.currentPage++;
               this.updateDisplayedStories();
             } else {
               this.hasMoreStories = false;
@@ -183,6 +231,18 @@ export class StoryListComponent implements OnInit {
 
     const neededStories = this.pageSize;
     this.ensureDataLoaded(neededStories);
+  }
+
+  onPageChange(event: PageEvent) {
+    this.pageSize = event.pageSize;
+    this.currentPage = event.pageIndex + 1;
+    
+    const requiredCount = this.currentPage * this.pageSize;
+    if (requiredCount > this.allLoadedStories.length) {
+      this.ensureDataLoaded(requiredCount);
+    } else {
+      this.updateDisplayedStories();
+    }
   }
 }
 
