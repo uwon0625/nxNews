@@ -10,6 +10,10 @@ NtNews is a sample Angular v19 web app to pull stories from [Hacker News API](ht
 - Automated end-to-end testing (with Playwright)
 - Integrated Unit Testing
 
+# Screenshots
+![app](https://github.com/uwon0625/nxNews/blob/main/app-view.png)
+![Swagger Api Doc](https://github.com/uwon0625/nxNews/blob/main/swagger.png)
+
 # Notes
 
 Hacker News API is very flexible and gives different data fields for different types. This app only pulls for story type("type" : "story") and skip other type like comment, job, poll, etc. Furthermore, we only list the stories with a Url so our users can follow up the link to read more. When we need to fetch for more stories, we have to check each item to check its type, which means pagination and caching are important to keep the app up running.
