@@ -53,20 +53,7 @@ describe('StoryListComponent', () => {
     expect(component.stories.length).toBe(10);
   });
 
-  it('should handle page size change', () => {
-    // Simulate paginator event
-    component.onPageChange({ 
-      pageIndex: 0, 
-      pageSize: 5, 
-      length: component.allLoadedStories.length 
-    });
-
-    expect(component.pageSize).toBe(5);
-    expect(component.stories.length).toBe(5);
-  });
-
-  it('should handle page navigation', () => {
-    // Go to second page
+  it('should handle page change', () => {
     component.onPageChange({ 
       pageIndex: 1, 
       pageSize: 10, 

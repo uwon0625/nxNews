@@ -24,7 +24,6 @@ export class StoryListComponent implements OnInit {
   allLoadedStories: Story[] = [];
   currentPage = 1;
   pageSize = 10;
-  maxId = 0;
   isLoading = false;
   error: string | null = null;
   hasMoreStories = true;
@@ -98,73 +97,6 @@ export class StoryListComponent implements OnInit {
     }
   }
 
-  onPageSizeChange() {
-    this.currentPage = 1;
-    this.updateDisplayedStories();
-  }
-
-  get canGoNext(): boolean {
-    return !this.isLoading;
-  }
-
-  get canGoPrevious(): boolean {
-    return this._canGoPrevious && !this.isLoading;
-  }
-
-  nextPage() {
-    if (this.canGoNext && !this.isLoading) {
-      const nextPageStart = this.currentPage * this.pageSize;
-      
-      this.currentPage++;
-      this.updateDisplayedStories();
-      
-      if (nextPageStart + this.pageSize > this.allLoadedStories.length) {
-        this.ensureDataLoaded(nextPageStart + this.pageSize);
-      }
-    }
-  }
-
-  previousPage() {
-    if (this.canGoPrevious) {
-      this.currentPage--;
-      this.updateDisplayedStories();
-    }
-  }
-
-  private ensureDataLoaded(requiredCount: number) {
-    if (requiredCount > this.allLoadedStories.length) {
-      this.isLoading = true;
-      const lastStoryId = this.allLoadedStories[this.allLoadedStories.length - 1]?.id;
-      
-      if (!lastStoryId) {
-        this.error = 'Failed to load more stories';
-        this.isLoading = false;
-        return;
-      }
-
-      this.newsService.getStories(lastStoryId, this.pageSize)
-        .subscribe({
-          next: (newStories) => {
-            if (newStories.length > 0) {
-              const existingIds = new Set(this.allLoadedStories.map(story => story.id));
-              const uniqueNewStories = newStories.filter(story => !existingIds.has(story.id));
-              
-              this.allLoadedStories = [...this.allLoadedStories, ...uniqueNewStories];
-              this.hasMoreStories = newStories.length === this.pageSize;
-              this.updateDisplayedStories();
-            } else {
-              this.hasMoreStories = false;
-            }
-            this.isLoading = false;
-          },
-          error: (error) => {
-            this.error = 'Failed to load stories';
-            this.isLoading = false;
-          }
-        });
-    }
-  }
-
   handleSearch() {
     const trimmedText = this.searchText.trim();
     if (trimmedText) {
@@ -211,9 +143,7 @@ export class StoryListComponent implements OnInit {
 
   private mergeSearchResults(cachedResults: Story[], apiResults: Story[]): Story[] {
     const existingIds = new Set(cachedResults.map(story => story.id));
-    
     const newResults = apiResults.filter(story => !existingIds.has(story.id));
-    
     return [...cachedResults, ...newResults];
   }
 
@@ -242,6 +172,40 @@ export class StoryListComponent implements OnInit {
       this.ensureDataLoaded(requiredCount);
     } else {
       this.updateDisplayedStories();
+    }
+  }
+
+  private ensureDataLoaded(requiredCount: number) {
+    if (requiredCount > this.allLoadedStories.length) {
+      this.isLoading = true;
+      const lastStoryId = this.allLoadedStories[this.allLoadedStories.length - 1]?.id;
+      
+      if (!lastStoryId) {
+        this.error = 'Failed to load more stories';
+        this.isLoading = false;
+        return;
+      }
+
+      this.newsService.getStories(lastStoryId, this.pageSize)
+        .subscribe({
+          next: (newStories) => {
+            if (newStories.length > 0) {
+              const existingIds = new Set(this.allLoadedStories.map(story => story.id));
+              const uniqueNewStories = newStories.filter(story => !existingIds.has(story.id));
+              
+              this.allLoadedStories = [...this.allLoadedStories, ...uniqueNewStories];
+              this.hasMoreStories = newStories.length === this.pageSize;
+              this.updateDisplayedStories();
+            } else {
+              this.hasMoreStories = false;
+            }
+            this.isLoading = false;
+          },
+          error: (error) => {
+            this.error = 'Failed to load stories';
+            this.isLoading = false;
+          }
+        });
     }
   }
 }
