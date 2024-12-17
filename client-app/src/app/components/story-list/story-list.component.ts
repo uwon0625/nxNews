@@ -30,20 +30,15 @@ export class StoryListComponent implements OnInit {
   constructor(private newsService: NewsService) {}
 
   ngOnInit() {
-    this.loadInitialStories();
+    this.loadStories();
   }
 
-  loadInitialStories() {
+  loadStories() {
     this.isLoading = true;
-    this.error = null;
-    
-    this.newsService.getNewStories(this.pageSize)
+    this.newsService.getStories(0, this.pageSize)
       .subscribe({
         next: (stories) => {
-          this.allLoadedStories = stories;
-          this.maxId = stories.length > 0 ? stories[0].id : 0;
-          this.hasMoreStories = stories.length === this.pageSize;
-          this.updateDisplayedStories();
+          this.stories = stories;
           this.isLoading = false;
         },
         error: (error) => {
